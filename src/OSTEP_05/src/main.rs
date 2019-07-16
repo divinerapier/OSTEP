@@ -1,6 +1,10 @@
+mod shell;
+
 fn main() {
     // foo01();
-    foo02(0o666); // Octal starts with 0o
+    // foo02(0o666); // Octal starts with 0o
+    let sh = shell::Shell::new();
+    sh.run();
 }
 
 fn foo01() {
