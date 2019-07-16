@@ -8,3 +8,5 @@ edition = "2018"
 
 [dependencies]
 libc = "0.2.60"
+nix = "0.14.1"
+log = "0.4"
