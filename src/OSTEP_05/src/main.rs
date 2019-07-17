@@ -3,8 +3,9 @@ mod shell;
 fn main() {
     // foo01();
     // foo02(0o666); // Octal starts with 0o
-    let sh = shell::Shell::new();
-    sh.run();
+    // let sh = shell::Shell::new();
+    // sh.run();
+    foo04();
 }
 
 fn foo01() {
@@ -105,5 +106,67 @@ fn foo02(permission: i32) {
             log::error!("close fd with error: {}", nix::errno::errno());
         }
         println!("exit: {}", libc::getpid());
+    }
+}
+
+fn foo04() {
+    // log::set_max_level(log::LevelFilter::Trace);
+    unsafe {
+        let pid = dbg!(libc::fork());
+        if pid < 0 {
+            panic!(
+                "invalid pid: {}, error: {:?}",
+                pid,
+                std::io::Error::last_os_error()
+            );
+        }
+        if pid == 0 {
+            println!("before close stdout");
+            let result = dbg!(libc::close(libc::STDOUT_FILENO));
+            if dbg!(result != 0) {
+                println!("failed to close stdout. error: {}", nix::errno::errno(),);
+                log::error!(
+                    "failed to close stdout. error: {}",
+                    std::io::Error::last_os_error()
+                );
+                return;
+            }
+            println!("closed stdout successfully");
+            log::info!("closed stdout successfully");
+            let new_mask = 0;
+            let old_mask = dbg!(libc::umask(new_mask));
+            let fd = dbg!(libc::open(
+                format!("./stdout.txt").as_ptr() as *const i8,
+                libc::O_CREAT | libc::O_RDWR | libc::O_TRUNC,
+                0o666,
+            ));
+            if dbg!(fd < 0) {
+                dbg!(std::io::Error::last_os_error());
+                return;
+            }
+            if dbg!(fd != libc::STDOUT_FILENO) {
+                panic!(
+                    "invalid fd: {}, error: {:?}",
+                    fd,
+                    std::io::Error::last_os_error()
+                );
+            }
+            dbg!(libc::umask(old_mask));
+            let result = dbg!(libc::execl(
+                format!("/bin/ls").as_ptr() as *const i8,
+                format!("ls").as_ptr() as *const i8,
+                format!("-G").as_ptr() as *const i8,
+                // "-alrth",
+            ));
+            log::info!("result: {}", result);
+            if result != 0 {
+                dbg!(std::io::Error::last_os_error());
+            }
+            dbg!(libc::close(libc::STDOUT_FILENO));
+        }
+        if pid > 0 {
+            let mut status: libc::c_int = 0;
+            libc::waitpid(pid, &mut status, 0);
+        }
     }
 }

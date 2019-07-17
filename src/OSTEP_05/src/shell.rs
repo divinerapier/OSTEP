@@ -11,12 +11,12 @@ impl Shell {
         let mut status = 0;
         loop {
             let current_dir = std::env::current_dir().unwrap();
-            print!("{:?} C: {}>", current_dir, status);
+            let current_dir = current_dir.to_str().unwrap();
+            println!("divinesh{} C: {}> ", current_dir, status);
             let mut buffer = String::new();
             std::io::stdin().read_to_string(&mut buffer).unwrap();
             let buffer = buffer.replace("  ", " ");
             let buffer = buffer.trim();
-            // let args: Vec<String> = buffer.split(" ");
             let args: &[&str] = &buffer.split_ascii_whitespace().collect::<Vec<&str>>();
             if args.len() == 0 {
                 continue;
