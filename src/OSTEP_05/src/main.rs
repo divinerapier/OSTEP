@@ -147,9 +147,9 @@ fn foo04() {
             }
             dbg!(libc::umask(old_mask));
             let result = dbg!(libc::execl(
-                format!("/bin/ls").as_ptr() as *const i8,
-                format!("ls").as_ptr() as *const i8,
-                format!("-G").as_ptr() as *const i8,
+                format!("/bin/ls\0").as_ptr() as *const i8,
+                format!("ls\0").as_ptr() as *const i8,
+                format!("-G\0").as_ptr() as *const i8,
                 std::ptr::null::<i8>(),
             ));
             if result != 0 {
